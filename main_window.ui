@@ -46,15 +46,12 @@
            </spacer>
           </item>
           <item>
-           <widget class="QLineEdit" name="lineEdit">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <widget class="QComboBox" name="comboBox">
+            <property name="currentText">
+             <string/>
             </property>
-            <property name="text">
-             <string>item</string>
+            <property name="currentIndex">
+             <number>-1</number>
             </property>
            </widget>
           </item>
@@ -239,7 +236,7 @@
        <item>
         <widget class="QPushButton" name="pushButton_loadImage">
          <property name="text">
-          <string>Choose Image File</string>
+          <string>Choose Directory</string>
          </property>
         </widget>
        </item>

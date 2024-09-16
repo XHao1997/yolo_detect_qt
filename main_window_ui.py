@@ -16,9 +16,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QButtonGroup, QGraphicsView, QGridLayout,
-    QGroupBox, QHBoxLayout, QLabel, QLayout,
-    QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
+from PySide6.QtWidgets import (QApplication, QButtonGroup, QComboBox, QGraphicsView,
+    QGridLayout, QGroupBox, QHBoxLayout, QLabel,
+    QLayout, QListWidget, QListWidgetItem, QMainWindow,
     QMenu, QMenuBar, QPushButton, QRadioButton,
     QSizePolicy, QSpacerItem, QStatusBar, QVBoxLayout,
     QWidget)
@@ -51,18 +51,16 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addItem(self.verticalSpacer_2)
 
-        self.lineEdit = QLineEdit(self.widget)
-        self.lineEdit.setObjectName(u"lineEdit")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.lineEdit.sizePolicy().hasHeightForWidth())
-        self.lineEdit.setSizePolicy(sizePolicy)
+        self.comboBox = QComboBox(self.widget)
+        self.comboBox.setObjectName(u"comboBox")
 
-        self.verticalLayout_2.addWidget(self.lineEdit)
+        self.verticalLayout_2.addWidget(self.comboBox)
 
         self.pushButton_addItem = QPushButton(self.widget)
         self.pushButton_addItem.setObjectName(u"pushButton_addItem")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.pushButton_addItem.sizePolicy().hasHeightForWidth())
         self.pushButton_addItem.setSizePolicy(sizePolicy)
 
@@ -176,6 +174,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self.comboBox.setCurrentIndex(-1)
+
+
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
@@ -183,7 +184,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Yolo Disaster Detection", None))
         self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"Display", None))
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Class Statistics", None))
-        self.lineEdit.setText(QCoreApplication.translate("MainWindow", u"item", None))
+        self.comboBox.setCurrentText("")
         self.pushButton_addItem.setText(QCoreApplication.translate("MainWindow", u"Add Item", None))
         self.pushButton_deleteItem.setText(QCoreApplication.translate("MainWindow", u"Delete Item", None))
 
@@ -203,7 +204,7 @@ class Ui_MainWindow(object):
         self.groupBox_4.setTitle(QCoreApplication.translate("MainWindow", u"Load Image", None))
         self.checkButton_image.setText(QCoreApplication.translate("MainWindow", u"Image", None))
         self.checkButton_video.setText(QCoreApplication.translate("MainWindow", u"Video", None))
-        self.pushButton_loadImage.setText(QCoreApplication.translate("MainWindow", u"Choose Image File", None))
+        self.pushButton_loadImage.setText(QCoreApplication.translate("MainWindow", u"Choose Directory", None))
         self.menuhi.setTitle(QCoreApplication.translate("MainWindow", u"Yolo Detect", None))
     # retranslateUi
 
