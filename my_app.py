@@ -17,6 +17,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
         self.setupUi(self)
+        self.pushButton_loadImage.clicked.connect(self.load_image)
 
         print(self.pushButton_addItem.isChecked)
 
@@ -48,6 +49,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Show the first Image in the same window. (self.label comes from the Ui_main_window class)
         self.label.setPixmap(QtGui.QPixmap(input_img_raw_string))
         self.label.show()
+
+    def load_image(self):
+        # Open a file dialog to select an image
+        file_name, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)")
+        
+        if file_name:
+            pixmap = QtGui.QPixmap(file_name)  # Load the image
+            self.label_display.setPixmap(pixmap)  # Set the image on the label
+            self.label_display.setScaledContents(True)  # Scale contents to fit
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
