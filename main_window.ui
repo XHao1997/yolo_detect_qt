@@ -134,35 +134,6 @@
       </layout>
      </widget>
     </item>
-    <item row="1" column="2" rowspan="2">
-     <widget class="QGroupBox" name="groupBox_3">
-      <property name="title">
-       <string>Display</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_3">
-       <item>
-        <widget class="QLabel" name="label_display">
-         <property name="text">
-          <string/>
-         </property>
-        </widget>
-       </item>
-       <item alignment="Qt::AlignmentFlag::AlignHCenter">
-        <widget class="QPushButton" name="pushButton">
-         <property name="minimumSize">
-          <size>
-           <width>80</width>
-           <height>25</height>
-          </size>
-         </property>
-         <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
     <item row="1" column="0" rowspan="2">
      <widget class="QGroupBox" name="groupBox">
       <property name="title">
@@ -259,6 +230,35 @@
            <string>rock</string>
           </property>
          </item>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="1" column="2" rowspan="2">
+     <widget class="QGroupBox" name="groupBox_3">
+      <property name="title">
+       <string>Display</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QLabel" name="label_display">
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignmentFlag::AlignHCenter">
+        <widget class="QPushButton" name="pushButton_display">
+         <property name="minimumSize">
+          <size>
+           <width>80</width>
+           <height>25</height>
+          </size>
+         </property>
+         <property name="text">
+          <string>Start</string>
+         </property>
         </widget>
        </item>
       </layout>

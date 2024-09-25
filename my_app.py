@@ -1,9 +1,10 @@
 import sys, os
 from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox,QWidget, QFileDialog
-from PySide6 import QtGui
+from PySide6 import QtGui, QtCore
 from main_window_ui import Ui_MainWindow
 import signal
-
+from ultralytics import YOLO
+from PIL import ImageQt
 def load_custom_style():
     with open("style.qss", "r") as f:
         _style = f.read()
@@ -16,9 +17,11 @@ def exit_with_sigint():
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
+        self.model = YOLO('best.pt')
+        self.image = None
         self.setupUi(self)
         self.pushButton_loadImage.clicked.connect(self.load_image)
-
+        self.pushButton_display.clicked.connect(self.detect_image)
         print(self.pushButton_addItem.isChecked)
 
     def uncheck(self, state): 
@@ -53,11 +56,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def load_image(self):
         # Open a file dialog to select an image
         file_name, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)")
-        
         if file_name:
             pixmap = QtGui.QPixmap(file_name)  # Load the image
-            self.label_display.setPixmap(pixmap)  # Set the image on the label
-            self.label_display.setScaledContents(True)  # Scale contents to fit
+            self.image = self.pixmap_to_pil_image(pixmap)
+            self.display_image(pixmap)
+    def display_image(self,pixmap):
+        # Set fixed width and height for the image to fit the label
+        label_width = self.label_display.width()  # Get the label's width
+        label_height = self.label_display.height()  # Get the label's height
+        # Scale the pixmap to fit the label while keeping aspect ratio
+        scaled_pixmap = pixmap.scaled(label_width, label_height, QtCore.Qt.AspectRatioMode.KeepAspectRatio)
+        self.label_display.setPixmap(scaled_pixmap)  # Set the scaled image on the label
+        # self.label_display.setScaledContents(False)  # Disable automatic scaling (since we manually scaled it)
+
+    def detect_image(self):
+        if self.image:
+            # Run the YOLO detection on the loaded image
+            results = self.model(self.image)[0]
+
+            results.save(filename = 'result.jpg')  # This will save the results (detected image with bounding boxes)
+            # Load and display the detection result
+            detected_img_path = 'result.jpg'  # Path of the image with bounding boxes
+            pixmap = QtGui.QPixmap(detected_img_path)  # Load the detection result image
+            self.display_image(pixmap)
+    @staticmethod
+    def pixmap_to_pil_image(pixmap):
+        return ImageQt.fromqpixmap(pixmap)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

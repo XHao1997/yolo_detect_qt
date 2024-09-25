@@ -99,24 +99,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.groupBox_4, 1, 4, 2, 1)
 
-        self.groupBox_3 = QGroupBox(self.centralwidget)
-        self.groupBox_3.setObjectName(u"groupBox_3")
-        self.verticalLayout_3 = QVBoxLayout(self.groupBox_3)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.label_display = QLabel(self.groupBox_3)
-        self.label_display.setObjectName(u"label_display")
-
-        self.verticalLayout_3.addWidget(self.label_display)
-
-        self.pushButton = QPushButton(self.groupBox_3)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setMinimumSize(QSize(80, 25))
-
-        self.verticalLayout_3.addWidget(self.pushButton, 0, Qt.AlignmentFlag.AlignHCenter)
-
-
-        self.gridLayout.addWidget(self.groupBox_3, 1, 2, 2, 1)
-
         self.groupBox = QGroupBox(self.centralwidget)
         self.groupBox.setObjectName(u"groupBox")
         self.horizontalLayout_2 = QHBoxLayout(self.groupBox)
@@ -170,6 +152,24 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.groupBox, 1, 0, 2, 1)
 
+        self.groupBox_3 = QGroupBox(self.centralwidget)
+        self.groupBox_3.setObjectName(u"groupBox_3")
+        self.verticalLayout_3 = QVBoxLayout(self.groupBox_3)
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.label_display = QLabel(self.groupBox_3)
+        self.label_display.setObjectName(u"label_display")
+
+        self.verticalLayout_3.addWidget(self.label_display)
+
+        self.pushButton_display = QPushButton(self.groupBox_3)
+        self.pushButton_display.setObjectName(u"pushButton_display")
+        self.pushButton_display.setMinimumSize(QSize(80, 25))
+
+        self.verticalLayout_3.addWidget(self.pushButton_display, 0, Qt.AlignmentFlag.AlignHCenter)
+
+
+        self.gridLayout.addWidget(self.groupBox_3, 1, 2, 2, 1)
+
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
@@ -198,9 +198,6 @@ class Ui_MainWindow(object):
         self.checkButton_image.setText(QCoreApplication.translate("MainWindow", u"Image", None))
         self.checkButton_video.setText(QCoreApplication.translate("MainWindow", u"Video", None))
         self.pushButton_loadImage.setText(QCoreApplication.translate("MainWindow", u"Choose Directory", None))
-        self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"Display", None))
-        self.label_display.setText("")
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Start", None))
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Class Statistics", None))
         self.comboBox.setCurrentText("")
         self.pushButton_addItem.setText(QCoreApplication.translate("MainWindow", u"Add Item", None))
@@ -218,6 +215,9 @@ class Ui_MainWindow(object):
         ___qlistwidgetitem3.setText(QCoreApplication.translate("MainWindow", u"rock", None));
         self.listWidget.setSortingEnabled(__sortingEnabled)
 
+        self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"Display", None))
+        self.label_display.setText("")
+        self.pushButton_display.setText(QCoreApplication.translate("MainWindow", u"Start", None))
         self.menuhi.setTitle(QCoreApplication.translate("MainWindow", u"Yolo Detect", None))
     # retranslateUi
 
