@@ -60,25 +60,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             pixmap = QtGui.QPixmap(file_name)  # Load the image
             self.image = self.pixmap_to_pil_image(pixmap)
             self.display_image(pixmap)
+
     def display_image(self,pixmap):
         # Set fixed width and height for the image to fit the label
         label_width = self.label_display.width()  # Get the label's width
         label_height = self.label_display.height()  # Get the label's height
         # Scale the pixmap to fit the label while keeping aspect ratio
-        scaled_pixmap = pixmap.scaled(label_width, label_height, QtCore.Qt.AspectRatioMode.KeepAspectRatio)
+        scaled_pixmap = pixmap.scaled(label_width, label_height, QtCore.Qt.AspectRatioMode.IgnoreAspectRatio)
         self.label_display.setPixmap(scaled_pixmap)  # Set the scaled image on the label
         # self.label_display.setScaledContents(False)  # Disable automatic scaling (since we manually scaled it)
 
     def detect_image(self):
         if self.image:
             # Run the YOLO detection on the loaded image
-            results = self.model(self.image)[0]
+            results = self.model(self.image,conf=0.5, iou=0.3)[0]
 
             results.save(filename = 'result.jpg')  # This will save the results (detected image with bounding boxes)
             # Load and display the detection result
             detected_img_path = 'result.jpg'  # Path of the image with bounding boxes
             pixmap = QtGui.QPixmap(detected_img_path)  # Load the detection result image
             self.display_image(pixmap)
+
     @staticmethod
     def pixmap_to_pil_image(pixmap):
         return ImageQt.fromqpixmap(pixmap)
