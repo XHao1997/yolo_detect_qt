@@ -58,17 +58,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         file_name, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)")
         if file_name:
             pixmap = QtGui.QPixmap(file_name)  # Load the image
-            self.image = self.pixmap_to_pil_image(pixmap)
-            self.display_image(pixmap)
+            scaled_pixmap = self.scale_qpix(pixmap)
+            self.image = self.pixmap_to_pil_image(scaled_pixmap)
+            self.display_image(scaled_pixmap)
 
-    def display_image(self,pixmap):
+    def scale_qpix(self, pixmap):
         # Set fixed width and height for the image to fit the label
         label_width = self.label_display.width()  # Get the label's width
         label_height = self.label_display.height()  # Get the label's height
         # Scale the pixmap to fit the label while keeping aspect ratio
         scaled_pixmap = pixmap.scaled(label_width, label_height, QtCore.Qt.AspectRatioMode.IgnoreAspectRatio)
-        self.label_display.setPixmap(scaled_pixmap)  # Set the scaled image on the label
-        # self.label_display.setScaledContents(False)  # Disable automatic scaling (since we manually scaled it)
+        return scaled_pixmap
+    
+    def display_image(self,pixmap):
+        self.label_display.setPixmap(pixmap)  # Set the scaled image on the label
+        self.label_display.setScaledContents(False)  # Disable automatic scaling (since we manually scaled it)
 
     def detect_image(self):
         if self.image:
