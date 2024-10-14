@@ -10,6 +10,7 @@ from ultralytics import YOLO
 from PIL import ImageQt
 import cv2
 from singleton_decorator import singleton
+import supervision as sv 
 
 def load_custom_style():
     with open("style.qss", "r") as f:
@@ -23,13 +24,58 @@ class WorkerSignals(QObject):
     """Defines the signals available from a running worker thread."""
     frame_signal = Signal(np.ndarray)  # Signal to send video frame data (as numpy array)
 
+
+@singleton
+class Predictor():
+    def __init__(self, model_name):
+        self.yolo = YOLO(model_name)
+        self.result = None
+        self.plotted_result = None
+    
+    def predict(self,img):
+        self.results = self.yolo(img, conf=0.3, iou=0.2) 
+
+    def plot(self):
+        # Extract bounding boxes, confidence scores, and class labels
+        boxes = np.array(self.results.boxes)  # Bounding box coordinates as a NumPy array
+        scores = np.array(self.results.scores)  # Confidence scores as a NumPy array
+        labels = np.array(self.results.labels)  # Class labels as a NumPy array (could be names or indices)
+
+        # Assuming self.image is already a NumPy array (image)
+        image = self.image.copy()
+
+        # Create detection objects using supervision
+        detections = sv.Detections(
+            xyxy=boxes,       # Bounding boxes in the format (x1, y1, x2, y2)
+            confidence=scores,  # Confidence scores
+            class_id=labels    # Class labels
+        )
+
+        # Set the box annotator (with optional class map and color settings)
+        box_annotator = sv.BoxAnnotator(
+            thickness=2,  # Bounding box thickness
+            text_thickness=1,  # Text thickness
+            text_scale=0.5,  # Text size
+            color=sv.Color.green(),  # Box color
+            text_color=sv.Color.blue()  # Text color
+        )
+
+        # Annotate the image with bounding boxes and labels
+        annotated_image = box_annotator.annotate(
+            scene=image,       # The input image
+            detections=detections)
+        self.plotted_result = annotated_image
+
+    def get_plotted_result(self):
+        return self.plotted_result
+    
 class VideoWorker(QRunnable):
     """
     Worker thread that captures video frames in the background.
     """
-    def __init__(self, video_path):
+    def __init__(self, model:Predictor, video_path):
         super().__init__()
-        self.predictor = Predictor('best.pt')
+        self.predictor = model
         self.signals = WorkerSignals()
         self.cap =  cv2.VideoCapture(video_path)
         self.is_running = True  # Flag to control the worker
@@ -40,8 +86,11 @@ class VideoWorker(QRunnable):
         """
         while self.is_running:
             ret, frame = self.cap.read()  # Capture frame from the webcam
+            self.predictor.predict(frame)
+            self.predictor.plot()
+
             if ret:
-                self.signals.frame_signal.emit(frame)  # Emit the captured frame as a signal
+                self.signals.frame_signal.emit(self.predictor.get_plotted_result)  # Emit the captured frame as a signal
             else:
                 break
 
@@ -50,23 +99,23 @@ class VideoWorker(QRunnable):
         self.is_running = False
         self.cap.release()  # Release the webcam
 
-@singleton
-class Predictor():
-    def __init__(self, model_name):
-        self.yolo = YOLO(model_name)
-        
-        return
-                
-
-
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        self.model = Predictor('best.pt').yolo
+        self.model = Predictor('best_v11.pt')
         self.image = None
         self.setupUi(self)
         self.pushButton_loadImage.clicked.connect(self.update_frame)
+        self.pushButton_display.clicked.connect(self.detect_image)
         self.threadpool = QThreadPool()
+        # Resize window to 3/4 of the screen size
+
+    def resize_to_screen_fraction(self, fraction):
+        screen_geometry = QApplication.primaryScreen().availableGeometry()
+        width = int(screen_geometry.width() * fraction)
+        height = int(screen_geometry.height() * fraction)
+        self.setGeometry(0, 0, width, height)
+
     def uncheck(self, state): 
         # checking if state is checked 
         if state == QCheckBox.checkStateChanged(): 
@@ -126,7 +175,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def detect_image(self):
         if self.image:
             # Run the YOLO detection on the loaded image
-            results = self.model(self.image,conf=0.5, iou=0.3)[0]
+            results = self.model.predict(self.image)[0]
 
             results.save(filename = 'result.jpg')  # This will save the results (detected image with bounding boxes)
             # Load and display the detection result
@@ -139,7 +188,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         Start video playback using QRunnable.
         """
         video_path = "data/8552756-hd_1080_1920_30fps.mp4"  # Path to your MP4 video file
-        self.worker = VideoWorker(video_path)  # Create the video worker
+        self.worker = VideoWorker(self.model, video_path)  # Create the video worker
         self.worker.signals.frame_signal.connect(self.update_video_frame)  # Connect frame signal to the update slot
         self.threadpool.start(self.worker)  # Start the worker in a separate thread
 
