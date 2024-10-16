@@ -11,38 +11,32 @@
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
 from PySide6.QtWidgets import (QApplication, QFrame, QGridLayout, QGroupBox,
     QHBoxLayout, QLCDNumber, QLabel, QMainWindow,
-    QPushButton, QRadioButton, QSizePolicy, QStatusBar,
-    QVBoxLayout, QWidget)
+    QMenu, QMenuBar, QPushButton, QRadioButton,
+    QSizePolicy, QStatusBar, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1544, 693)
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
-        MainWindow.setSizePolicy(sizePolicy)
-        MainWindow.setMinimumSize(QSize(1544, 693))
-        MainWindow.setMaximumSize(QSize(1544, 693))
+        MainWindow.resize(1312, 647)
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         self.gridLayout = QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName(u"gridLayout")
         self.label_2 = QLabel(self.centralwidget)
         self.label_2.setObjectName(u"label_2")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
-        self.label_2.setSizePolicy(sizePolicy1)
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.label_2.sizePolicy().hasHeightForWidth())
+        self.label_2.setSizePolicy(sizePolicy)
         self.label_2.setMaximumSize(QSize(60, 60))
         self.label_2.setTextFormat(Qt.TextFormat.AutoText)
         self.label_2.setPixmap(QPixmap(u"images.jpeg"))
@@ -56,8 +50,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.horizontalWidget = QWidget(self.groupBox)
         self.horizontalWidget.setObjectName(u"horizontalWidget")
-        sizePolicy1.setHeightForWidth(self.horizontalWidget.sizePolicy().hasHeightForWidth())
-        self.horizontalWidget.setSizePolicy(sizePolicy1)
         self.horizontalLayout_2 = QHBoxLayout(self.horizontalWidget)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.verticalLayout_5 = QVBoxLayout()
@@ -150,53 +142,41 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.horizontalWidget)
 
-        self.widget = QWidget(self.groupBox)
-        self.widget.setObjectName(u"widget")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.widget.sizePolicy().hasHeightForWidth())
-        self.widget.setSizePolicy(sizePolicy2)
-        self.verticalLayout_3 = QVBoxLayout(self.widget)
-        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
-        self.pushButton_4 = QPushButton(self.widget)
+        self.verticalWidget = QWidget(self.groupBox)
+        self.verticalWidget.setObjectName(u"verticalWidget")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.verticalWidget.sizePolicy().hasHeightForWidth())
+        self.verticalWidget.setSizePolicy(sizePolicy1)
+        self.horizontalLayout_3 = QHBoxLayout(self.verticalWidget)
+        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+
+        self.verticalLayout_2.addWidget(self.verticalWidget)
+
+        self.pushButton_4 = QPushButton(self.groupBox)
         self.pushButton_4.setObjectName(u"pushButton_4")
 
-        self.verticalLayout_3.addWidget(self.pushButton_4, 0, Qt.AlignmentFlag.AlignRight)
-
-
-        self.verticalLayout_2.addWidget(self.widget)
+        self.verticalLayout_2.addWidget(self.pushButton_4, 0, Qt.AlignmentFlag.AlignRight)
 
 
         self.gridLayout.addWidget(self.groupBox, 1, 0, 2, 1)
 
         self.groupBox_3 = QGroupBox(self.centralwidget)
         self.groupBox_3.setObjectName(u"groupBox_3")
-        sizePolicy1.setHeightForWidth(self.groupBox_3.sizePolicy().hasHeightForWidth())
-        self.groupBox_3.setSizePolicy(sizePolicy1)
         self.verticalLayout = QVBoxLayout(self.groupBox_3)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.verticalWidget = QWidget(self.groupBox_3)
-        self.verticalWidget.setObjectName(u"verticalWidget")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy3.setHorizontalStretch(2)
-        sizePolicy3.setVerticalStretch(2)
-        sizePolicy3.setHeightForWidth(self.verticalWidget.sizePolicy().hasHeightForWidth())
-        self.verticalWidget.setSizePolicy(sizePolicy3)
-        self.verticalLayout_6 = QVBoxLayout(self.verticalWidget)
-        self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.label_display = QLabel(self.verticalWidget)
+        self.verticalLayout_3 = QVBoxLayout()
+        self.verticalLayout_3.setObjectName(u"verticalLayout_3")
+        self.label_display = QLabel(self.groupBox_3)
         self.label_display.setObjectName(u"label_display")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy4.setHorizontalStretch(10)
-        sizePolicy4.setVerticalStretch(10)
-        sizePolicy4.setHeightForWidth(self.label_display.sizePolicy().hasHeightForWidth())
-        self.label_display.setSizePolicy(sizePolicy4)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.MinimumExpanding)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.label_display.sizePolicy().hasHeightForWidth())
+        self.label_display.setSizePolicy(sizePolicy2)
 
-        self.verticalLayout_6.addWidget(self.label_display)
-
-
-        self.verticalLayout.addWidget(self.verticalWidget)
+        self.verticalLayout_3.addWidget(self.label_display)
 
         self.widget_2 = QWidget(self.groupBox_3)
         self.widget_2.setObjectName(u"widget_2")
@@ -225,15 +205,26 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.pushButton_Detect)
 
 
-        self.verticalLayout.addWidget(self.widget_2, 0, Qt.AlignmentFlag.AlignBottom)
+        self.verticalLayout_3.addWidget(self.widget_2)
+
+
+        self.verticalLayout.addLayout(self.verticalLayout_3)
 
 
         self.gridLayout.addWidget(self.groupBox_3, 1, 2, 2, 1)
 
         MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QMenuBar(MainWindow)
+        self.menubar.setObjectName(u"menubar")
+        self.menubar.setGeometry(QRect(0, 0, 1312, 22))
+        self.menuhi = QMenu(self.menubar)
+        self.menuhi.setObjectName(u"menuhi")
+        MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
+
+        self.menubar.addAction(self.menuhi.menuAction())
 
         self.retranslateUi(MainWindow)
 
@@ -255,5 +246,6 @@ class Ui_MainWindow(object):
         self.radioButton_image_mode.setText(QCoreApplication.translate("MainWindow", u"image", None))
         self.pushButton_select_file.setText(QCoreApplication.translate("MainWindow", u"Select file", None))
         self.pushButton_Detect.setText(QCoreApplication.translate("MainWindow", u"Detect", None))
+        self.menuhi.setTitle(QCoreApplication.translate("MainWindow", u"Yolo Detect", None))
     # retranslateUi
 

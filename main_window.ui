@@ -6,27 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1544</width>
-    <height>693</height>
+    <width>1312</width>
+    <height>647</height>
    </rect>
-  </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>1544</width>
-    <height>693</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>1544</width>
-    <height>693</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Yolo Disaster Detection</string>
@@ -69,12 +51,6 @@
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <widget class="QWidget" name="horizontalWidget" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -243,22 +219,21 @@
         </widget>
        </item>
        <item>
-        <widget class="QWidget" name="widget" native="true">
+        <widget class="QWidget" name="verticalWidget" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
            <horstretch>0</horstretch>
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item alignment="Qt::AlignmentFlag::AlignRight">
-           <widget class="QPushButton" name="pushButton_4">
-            <property name="text">
-             <string>Save Data</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <layout class="QHBoxLayout" name="horizontalLayout_3"/>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignmentFlag::AlignRight">
+        <widget class="QPushButton" name="pushButton_4">
+         <property name="text">
+          <string>Save Data</string>
+         </property>
         </widget>
        </item>
       </layout>
@@ -266,85 +241,87 @@
     </item>
     <item row="1" column="2" rowspan="2">
      <widget class="QGroupBox" name="groupBox_3">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
       <property name="title">
        <string>Display</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QWidget" name="verticalWidget" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>2</horstretch>
-           <verstretch>2</verstretch>
-          </sizepolicy>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_6">
-          <item>
-           <widget class="QLabel" name="label_display">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-              <horstretch>10</horstretch>
-              <verstretch>10</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item alignment="Qt::AlignmentFlag::AlignBottom">
-        <widget class="QWidget" name="widget_2" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QRadioButton" name="radioButton_video_mode">
-            <property name="text">
-             <string>video</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QRadioButton" name="radioButton_image_mode">
-            <property name="text">
-             <string>image</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_select_file">
-            <property name="text">
-             <string>Select file</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="pushButton_Detect">
-            <property name="text">
-             <string>Detect</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
+        <layout class="QVBoxLayout" name="verticalLayout_3">
+         <item>
+          <widget class="QLabel" name="label_display">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QWidget" name="widget_2" native="true">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QRadioButton" name="radioButton_video_mode">
+              <property name="text">
+               <string>video</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QRadioButton" name="radioButton_image_mode">
+              <property name="text">
+               <string>image</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_select_file">
+              <property name="text">
+               <string>Select file</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_Detect">
+              <property name="text">
+               <string>Detect</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>
     </item>
    </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1312</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuhi">
+    <property name="title">
+     <string>Yolo Detect</string>
+    </property>
+   </widget>
+   <addaction name="menuhi"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
