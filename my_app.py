@@ -11,7 +11,8 @@ import cv2
 from ultralytics import YOLO  # Assuming you're using ultralytics YOLO
 from PIL import ImageQt
 from collections import Counter
-
+import utils
+from collections import defaultdict
 def load_custom_style():
     with open("style.qss", "r") as f:
         _style = f.read()
@@ -44,20 +45,21 @@ def Singleton(cls):  # This is a function that aims to implement a "decorator" f
 @Singleton
 class Predictor():
     def __init__(self):
-        self.model = None
-        self.model2 = None
+        self.model_video = None
+        self.model_img = None
         self.results = None
         self.plotted_result = None
         self.image = None  # Store the input image
         self.load()
         self.is_video = True
         self.total_count = {}
+        self.track_history = defaultdict(lambda: [])
 
     def load(self):
-        self.model = YOLO("best_v11_video.pt")  # Load your model
-        self.model2 = YOLO("best_v11s.pt")
-        self.model2.fuse()
-        self.model.fuse()
+        self.model_video = YOLO("best_v11_video.pt")  # Load your model
+        self.model_img = YOLO("best.pt")
+        self.model_img.fuse()
+        self.model_video.fuse()
 
     def predict(self, img):
         """
@@ -65,11 +67,11 @@ class Predictor():
         """
         # Store the resized image for plotting later
         if self.is_video:
-            model = self.model
+            model = self.model_video
         else: 
-            model = self.model2
+            model = self.model_img
         self.image = img
-        self.results = model.track(img, conf=0.4, iou=0.3)[0]  # Perform inference
+        self.results = model.track(img, conf=0.4, iou=0.3, persist=True)[0]  # Perform inference
         self.detections = self.results
 
     def get_plotted_result(self):
@@ -82,18 +84,18 @@ class Predictor():
         return self.results
         
     def count_class_num(self):
-        if self.is_video:
-            model = self.model
-        else: 
-            model = self.model2
-        category_counts = Counter()
-        for result in self.results:
-            category_counts.update(result.boxes.cls.cpu().numpy())
+        if (self.results.boxes.id) is not None:
+            # Process detections
+            track_ids = self.results.boxes.id.int().cpu().tolist()
+            classes = self.results.boxes.cls.numpy()
+            
+            # Store tracking information and count classes
+            result, self.track_history = utils.store_track_info(track_ids, classes, self.track_history)
+            self.total_count = utils.count_from_track_history(self.track_history)
+            self.total_count = utils.remap_dictionary(self.total_count)
 
-        total_counts = {model.names[i]: count for i, count in category_counts.items()}
-        self.total_count = total_counts
-        print(total_counts)
-        return total_counts
+        return self.total_count
+
 
 
 
@@ -115,15 +117,15 @@ class VideoWorker(QRunnable):
         """
         while self.is_running:
             ret, frame = self.cap.read()  # Capture frame from the webcam
-            frame = cv2.resize(frame, (640, 480))
             if ret:
+                frame = cv2.resize(frame, (640, 480))
                 self.predictor.predict(frame)
                 # Emit the first signal with the plotted 
                 print("frame")
                 self.signals.frame_signal.emit(self.predictor.get_plotted_result())
                 # Emit the second signal with the class count
             else:
-                self.is_running = False
+                self.stop()
 
 
     def stop(self):
@@ -206,13 +208,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         total_count = self.model.count_class_num()
         # Update the LCD displays
         if 'stone' in total_count:
-            self.lcdNumber_stone.display(total_count['stone'] + self.class_count['stone'])
+            self.lcdNumber_stone.display(total_count['stone'])
         if 'fallen tree' in total_count:
-            self.lcdNumber_fallentree.display(total_count['fallen tree'] + self.class_count['fallen tree'])
+            self.lcdNumber_fallentree.display(total_count['fallen tree'])
         if 'road collapse' in total_count:
-            self.lcdNumber_roadcollapse.display(total_count['road collapse'] + self.class_count['road collapse'])
+            self.lcdNumber_roadcollapse.display(total_count['road collapse'])
         if 'landslide' in total_count:
-            self.lcdNumber_landslide.display(total_count['landslide'] + self.class_count['landslide'])
+            self.lcdNumber_landslide.display(total_count['landslide'])
 
         # Update self.class_count with the new counts
         for key in total_count:

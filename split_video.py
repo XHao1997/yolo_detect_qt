@@ -2,7 +2,7 @@ import cv2
 import os
 
 # Function to extract frames
-def FrameCapture(path, output_dir="splited_images", frame_interval=1):
+def FrameCapture(path, output_dir="splited_images", frame_interval=2):
     # Create the output directory if it doesn't exist
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -38,4 +38,4 @@ def FrameCapture(path, output_dir="splited_images", frame_interval=1):
 # Driver Code
 if __name__ == '__main__':
     # Calling the function to extract frames every 1 second
-    FrameCapture("data/VID_20240908_115227.mp4")
+    FrameCapture("wave.mp4",output_dir="splitted_images_4")
