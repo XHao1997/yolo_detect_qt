@@ -1,17 +1,18 @@
 /* Change color, padding, and font-size of QPushButtons */
 
 QPushButton{
-    background-color: #A9D8D2;
-    padding: 20px;
+    background-color: #ff0f2c7c;
     font-size: 12px;
+    color: #ffffffff;
 }
+
 
 /* It is also possible to find good templates online. Check this one:
    https://thesmithfam.org/blog/2010/03/10/fancy-qslider-stylesheet/ */
 
 QSlider::groove:horizontal {
 border: 1px solid #bbb;
-background: white;
+background: blue;
 height: 10px;
 border-radius: 4px;
 }
@@ -20,7 +21,7 @@ QSlider::sub-page:horizontal {
 background: qlineargradient(x1: 0, y1: 0,    x2: 0, y2: 1,
     stop: 0 #66e, stop: 1 #bbf);
 background: qlineargradient(x1: 0, y1: 0.2, x2: 1, y2: 1,
-    stop: 0 #bbf, stop: 1 #55f);
+    stop: 0 #55e, stop: 1 #57f);
 border: 1px solid #777;
 height: 10px;
 border-radius: 4px;
