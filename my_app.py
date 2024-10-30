@@ -63,10 +63,10 @@ class Predictor():
 
     def reset(self):
         self.track_history= defaultdict(lambda: [])
-        self.model_img.track().clear()
-        self.model_video.track().clear()
-        self.model_video = YOLO("best_v11s2.pt")  # Load your model
-        self.model_img = YOLO("best_v11s2.pt")
+        # self.model_video = YOLO("best_v11s2.pt")  # Load your model
+        # self.model_img = YOLO("best_v11s2.pt")
+        # self.model_img.track().clear()
+        # self.model_video.track().clear()
         self.total_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
         self.results = None
 
@@ -79,8 +79,7 @@ class Predictor():
             self.results = self.model_video.track(img, conf=0.05, iou=0.3, persist=True,tracker="custom_tracker.yaml")[0]  # Perform inference
 
         else: 
-            self.model_img.track().clear()
-            self.results = self.model_img.track(img, conf=0.2, iou=0.3)[0]  # Perform inference
+            self.results = self.model_img.track(img, conf=0.1, iou=0.3)[0]  # Perform inference
 
         self.image = img
         self.detections = self.results
@@ -138,6 +137,7 @@ class VideoWorker(QRunnable):
                 # Emit the second signal with the class count
             else:
                 self.stop()
+        self.stop()
 
     def stop(self):
         """Stop the video capture."""
@@ -271,7 +271,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if len(np_image.shape) == 2:
             # Convert grayscale to RGB (by repeating channels)
             np_image = cv2.cvtColor(np_image, cv2.COLOR_GRAY2RGB)
-
         # If image is BGR (OpenCV default), convert it to RGB
         if np_image.shape[2] == 3:  # BGR to RGB
             np_image = cv2.cvtColor(np_image, cv2.COLOR_BGR2RGB)
