@@ -51,7 +51,7 @@ class Predictor():
         self.plotted_result = None
         self.image = None  # Store the input image
         self.is_video = True
-        self.total_count = {}
+        self.total_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
         self.track_history = defaultdict(lambda: [])
         self.load()
 
@@ -63,10 +63,11 @@ class Predictor():
 
     def reset(self):
         self.track_history= defaultdict(lambda: [])
+        self.model_img.track().clear()
+        self.model_video.track().clear()
         self.model_video = YOLO("best_v11s2.pt")  # Load your model
         self.model_img = YOLO("best_v11s2.pt")
-        self.model_img.track().clear()
-        self.total_count.clear()
+        self.total_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
         self.results = None
 
     def predict(self, img):
@@ -75,13 +76,11 @@ class Predictor():
         """
         # Store the resized image for plotting later
         if self.is_video:
-            model = self.model_video
-            self.results = model.track(img, conf=0.2, iou=0.3, persist=True)[0]  # Perform inference
+            self.results = self.model_video.track(img, conf=0.05, iou=0.3, persist=True,tracker="custom_tracker.yaml")[0]  # Perform inference
 
         else: 
-            model = self.model_img
             self.model_img.track().clear()
-            self.results = model.track(img, conf=0.2, iou=0.3)[0]  # Perform inference
+            self.results = self.model_img.track(img, conf=0.2, iou=0.3)[0]  # Perform inference
 
         self.image = img
         self.detections = self.results
@@ -122,6 +121,7 @@ class VideoWorker(QRunnable):
         self.cap =  cv2.VideoCapture(video_path)
         self.cap.set(cv2.CAP_PROP_FPS, 4)  # Set FPS to 10
         self.is_running = True  # Flag to control the worker
+
     @Slot()  # Marks this method as a slot that can be invoked from Qt code
     def run(self):
         """
@@ -138,7 +138,6 @@ class VideoWorker(QRunnable):
                 # Emit the second signal with the class count
             else:
                 self.stop()
-
 
     def stop(self):
         """Stop the video capture."""

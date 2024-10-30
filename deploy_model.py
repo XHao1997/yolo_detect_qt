@@ -1,8 +1,8 @@
 from roboflow import Roboflow
 
 
-rf = Roboflow(api_key="jFmXIKys0UqwXbTlPmgC")
-project = rf.workspace("pig-kft3y").project("traffic-disaster5")
-version = project.version(5)
-# dataset = version.download("yolov11")
-project.version(5).deploy(model_type='yolov11', model_path=f'runs/detect5/train/')
+rf = Roboflow(api_key="tZOwB39itZ7xS7VZVoPv")
+project = rf.workspace("yolodetect-pa1yv").project("yolo_detect-kkaki-evsav")
+version = project.version(1)
+                
+version.deploy("yolov11", ".", "best_v11s2.pt")

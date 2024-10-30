@@ -1,0 +1,26 @@
+tracker_type: botsort # already set to BoT-SORT, which is robust for tracking
+
+# Association Thresholds
+track_high_thresh: 0.1      # Lowering to 0.1 can make it more lenient for initial associations
+track_low_thresh: 0.05      # Lowering to 0.05 allows more leniency for secondary associations
+new_track_thresh: 0.2       # Lowering this encourages creating new tracks more easily
+
+# Tracking Buffer
+track_buffer: 30            # Increasing buffer lets tracks linger longer before being removed, useful for temporary occlusions
+
+# Matching Threshold
+match_thresh: 0.7           # A higher threshold may help keep tracks consistent if objects move close together
+
+# Confidence and IoU Fusion
+fuse_score: False           # Disabling fusion can help if confidence scores fluctuate; relies only on IoU for matching
+
+# Global Motion Compensation
+gmc_method: none            # Try disabling global motion compensation for fewer false matches in non-stationary frames
+
+# Proximity and Appearance (if using ReID)
+proximity_thresh: 0.3       # Lowering proximity helps tracks stay associated in close-range
+appearance_thresh: 0.1      # Lowering appearance threshold if `with_reid` is enabled
+with_reid: True             # Enable ReID if your tracker supports it, enhancing re-identification on object reappearance
+
+# Minimum Box Area (Optional)
+min_box_area: 5             # (If activated) reduces the minimum box area to allow tracking smaller objects
