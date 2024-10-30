@@ -50,16 +50,24 @@ class Predictor():
         self.results = None
         self.plotted_result = None
         self.image = None  # Store the input image
-        self.load()
         self.is_video = True
         self.total_count = {}
         self.track_history = defaultdict(lambda: [])
+        self.load()
 
     def load(self):
-        self.model_video = YOLO("best_v11_video.pt")  # Load your model
-        self.model_img = YOLO("best.pt")
+        self.model_video = YOLO("best_v11s2.pt")  # Load your model
+        self.model_img = YOLO("best_v11s2.pt")
         self.model_img.fuse()
         self.model_video.fuse()
+
+    def reset(self):
+        self.track_history= defaultdict(lambda: [])
+        self.model_video = YOLO("best_v11s2.pt")  # Load your model
+        self.model_img = YOLO("best_v11s2.pt")
+        self.model_img.track().clear()
+        self.total_count.clear()
+        self.results = None
 
     def predict(self, img):
         """
@@ -68,10 +76,14 @@ class Predictor():
         # Store the resized image for plotting later
         if self.is_video:
             model = self.model_video
+            self.results = model.track(img, conf=0.2, iou=0.3, persist=True)[0]  # Perform inference
+
         else: 
             model = self.model_img
+            self.model_img.track().clear()
+            self.results = model.track(img, conf=0.2, iou=0.3)[0]  # Perform inference
+
         self.image = img
-        self.results = model.track(img, conf=0.4, iou=0.3, persist=True)[0]  # Perform inference
         self.detections = self.results
 
     def get_plotted_result(self):
@@ -84,16 +96,16 @@ class Predictor():
         return self.results
         
     def count_class_num(self):
-        if (self.results.boxes.id) is not None:
-            # Process detections
-            track_ids = self.results.boxes.id.int().cpu().tolist()
-            classes = self.results.boxes.cls.numpy()
-            
-            # Store tracking information and count classes
-            result, self.track_history = utils.store_track_info(track_ids, classes, self.track_history)
-            self.total_count = utils.count_from_track_history(self.track_history)
-            self.total_count = utils.remap_dictionary(self.total_count)
-
+        if self.results is not None: # fix video stop bug
+            if (self.results.boxes.id) is not None:
+                # Process detections
+                track_ids = self.results.boxes.id.int().cpu().tolist()
+                classes = self.results.boxes.cls.numpy()
+                
+                # Store tracking information and count classes
+                result, self.track_history = utils.store_track_info(track_ids, classes, self.track_history)
+                self.total_count = utils.count_from_track_history(self.track_history)
+                self.total_count = utils.remap_dictionary(self.total_count)
         return self.total_count
 
 
@@ -132,7 +144,7 @@ class VideoWorker(QRunnable):
         """Stop the video capture."""
         self.is_running = False
         self.cap.release()  # Release the webcam
-
+        self.predictor.reset()
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -171,8 +183,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def stop_video(self):
         self.worker.is_running = False
+        self.worker.stop()
 
     def update_frame(self):
+        self.model.reset()
         if self.radioButton_video_mode.isChecked():
             self.start_video()
         elif self.radioButton_image_mode.isChecked():
@@ -219,23 +233,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Update self.class_count with the new counts
         for key in total_count:
             if key in self.class_count:
-                self.class_count[key] += total_count[key]
+                self.class_count[key] = total_count[key]
         
-        # Print the updated class counts for debugging
-        print(self.class_count)
     
     def start_video(self):
         """
         Start video playback using QRunnable.
         """
         video_path = self.load_video()  # Path to your MP4 video file
-        if "VID" in video_path:
-            self.model.is_video = True
-        else:
-            self.model.is_video = False
         self.worker = VideoWorker(self.model, video_path)  # Create the video worker
-# Connect signals to the appropriate slots
+        # Connect signals to the appropriate slots
         self.worker.signals.frame_signal.connect(self.update_display_frame)
+        self.model.is_video = True
         self.threadpool.start(self.worker)  # Start the worker in a separate thread
 
     def update_display_frame(self, frame):
