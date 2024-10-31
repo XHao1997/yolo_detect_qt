@@ -8,6 +8,7 @@
 
 2. 运行app
 进入项目文件夹， `cd 'path to project'`， `'path to project'` 为系统中的路径名
+输入 `python my_app.py`
 
 3. 拉取更新最新代码
 在项目所在文件夹中右键点击 git bash
