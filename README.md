@@ -1,11 +1,12 @@
 **软件安装拉取说明：**
 
-1. 激活环境指令:
-环境名称为**env.yml**中name所对应名称
-![alt text](image.png)  
+1. 激活环境指令:  
+    环境名称为**env.yml**中name所对应名称  
 
-如图环境名为 yolo_test
-运行 `conda activate yolo_test`
+    ![alt text](image.png)  
+
+    如图环境名为 yolo_test
+    运行 `conda activate yolo_test`
 
 2. 运行app
 进入项目文件夹， `cd 'path to project'`， `'path to project'` 为系统中的路径名  
