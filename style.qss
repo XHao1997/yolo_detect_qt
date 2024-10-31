@@ -2,7 +2,7 @@
 
 QPushButton{
     background-color: #ff0f2c7c;
-    font-size: 12px;
+    font-size: 14px;
     color: #ffffffff;
 }
 
