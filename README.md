@@ -16,3 +16,6 @@
 在项目所在文件夹中右键点击 git bash
 输入指令 `git restore . && git pull`
 该指令会重置之前所有操作并拉取最新代码，如有代码需要备份请与我联系
+
+4. ui样例
+![alt text](image-1.png)
