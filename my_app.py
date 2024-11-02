@@ -13,6 +13,7 @@ from PIL import ImageQt
 from collections import Counter
 import utils
 from collections import defaultdict
+import matplotlib.pyplot as plt
 def load_custom_style():
     with open("style.qss", "r") as f:
         _style = f.read()
@@ -63,10 +64,6 @@ class Predictor():
 
     def reset(self):
         self.track_history= defaultdict(lambda: [])
-        # self.model_video = YOLO("best_v11s2.pt")  # Load your model
-        # self.model_img = YOLO("best_v11s2.pt")
-        # self.model_img.track().clear()
-        # self.model_video.track().clear()
         self.total_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
         self.results = None
 
@@ -84,9 +81,11 @@ class Predictor():
         self.image = img
         self.detections = self.results
 
-    def get_plotted_result(self):
+    def get_plotted_result(self, line_thickness=1):
         if self.results is not None:
-            return self.results.plot()
+        # Plot the result as usual
+            img = self.results.plot(line_thickness)
+            return img
         else:
             return self.image
     
@@ -158,7 +157,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.file_path = None
         self.worker = None
         self.class_count = {'stone':0, "landslide":0, "fallen tree":0, "road collapse":0 }
-        # Resize window to 3/4 of the screen size
+        self.resize_to_screen_fraction(fraction=1)
+        
 
     def resize_to_screen_fraction(self, fraction):
         screen_geometry = QApplication.primaryScreen().availableGeometry()
@@ -174,7 +174,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             scaled_pixmap = self.scale_qpix(pixmap)
             self.image = self.pixmap_to_pil_image(scaled_pixmap)
             self.display_image(scaled_pixmap)
+    def update_listview(self):
 
+
+
+        return 
     def load_video(self):
         # Open a file dialog to select an image
         file_name, _ = QFileDialog.getOpenFileName(self, "Open Video File", "", "Videos (*.mp4)")
@@ -196,7 +200,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         label_width = self.label_display.width()  # Get the label's width
         label_height = self.label_display.height()  # Get the label's height
         # Scale the pixmap to fit the label while keeping aspect ratio
-        scaled_pixmap = pixmap.scaled(label_width*1, label_height*1, QtCore.Qt.AspectRatioMode.IgnoreAspectRatio)
+        scaled_pixmap = pixmap.scaled(label_width*1, label_height*1, QtCore.Qt.AspectRatioMode.KeepAspectRatioByExpanding)
         return scaled_pixmap
     
     def display_image(self,pixmap):
