@@ -158,7 +158,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker = None
         self.class_count = {'stone':0, "landslide":0, "fallen tree":0, "road collapse":0 }
         self.resize_to_screen_fraction(fraction=1)
-        
 
     def resize_to_screen_fraction(self, fraction):
         screen_geometry = QApplication.primaryScreen().availableGeometry()
@@ -174,11 +173,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             scaled_pixmap = self.scale_qpix(pixmap)
             self.image = self.pixmap_to_pil_image(scaled_pixmap)
             self.display_image(scaled_pixmap)
+    
+    def show_msg_box(self):
+        
+        return
+
     def update_listview(self):
-
-
-
         return 
+    
     def load_video(self):
         # Open a file dialog to select an image
         file_name, _ = QFileDialog.getOpenFileName(self, "Open Video File", "", "Videos (*.mp4)")
@@ -200,7 +202,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         label_width = self.label_display.width()  # Get the label's width
         label_height = self.label_display.height()  # Get the label's height
         # Scale the pixmap to fit the label while keeping aspect ratio
-        scaled_pixmap = pixmap.scaled(label_width*1, label_height*1, QtCore.Qt.AspectRatioMode.KeepAspectRatioByExpanding)
+        scaled_pixmap = pixmap.scaled(label_width*1, label_height*1, QtCore.Qt.AspectRatioMode.IgnoreAspectRatio)
         return scaled_pixmap
     
     def display_image(self,pixmap):
@@ -266,6 +268,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         pixmap = QtGui.QPixmap.fromImage(QtGui.QImage(qimage))  # Convert QImage to QPixmap
         return pixmap
 
+    def closeEvent(self, event):
+        # do stuff
+        if can_exit:
+            event.accept() # let the window close
+        else:
+            event.ignore()
+            
     @staticmethod
     def pixmap_to_pil_image(pixmap):
         return ImageQt.fromqpixmap(pixmap)

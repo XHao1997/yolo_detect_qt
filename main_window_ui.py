@@ -385,6 +385,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuhi.menuAction())
 
         self.retranslateUi(MainWindow)
+        MainWindow.destroyed.connect(MainWindow.close)
 
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
@@ -401,7 +402,7 @@ class Ui_MainWindow(object):
         self.pushButton_stop.setText(QCoreApplication.translate("MainWindow", u"\u505c\u6b62", None))
         self.pushButton_select_file.setText(QCoreApplication.translate("MainWindow", u"\u9009\u62e9\u76ee\u5f55", None))
         self.pushButton_Detect.setText(QCoreApplication.translate("MainWindow", u"\u68c0\u6d4b", None))
-        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"\u6570\u636e\u7edf\u8ba1", None))
+        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"\u7edf\u8ba1", None))
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"\u6587\u4ef6\u540d", None))
         self.lcdNumber_landslide.setStyleSheet(QCoreApplication.translate("MainWindow", u"font: 700 20pt \"Ubuntu\";", None))
         self.lcdNumber_fallentree.setStyleSheet(QCoreApplication.translate("MainWindow", u"font: 700 20pt \"Ubuntu\";", None))
