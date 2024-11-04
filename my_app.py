@@ -1,4 +1,5 @@
 import sys, os
+import shutil
 from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox,QWidget, QFileDialog
 from PySide6.QtCore import QRunnable, Slot, Signal, QObject, QThreadPool, QThread, QTimer
 from PySide6 import QtGui, QtCore
@@ -57,8 +58,8 @@ class Predictor():
         self.load()
 
     def load(self):
-        self.model_video = YOLO("best_v11s2.pt")  # Load your model
-        self.model_img = YOLO("best_v11s2.pt")
+        self.model_video = YOLO("weights/best_v11s2.pt")  # Load your model
+        self.model_img = YOLO("weights/best_v11_bad.pt")
         self.model_img.fuse()
         self.model_video.fuse()
 
@@ -76,10 +77,9 @@ class Predictor():
             self.results = self.model_video.track(img, conf=0.05, iou=0.3, persist=True,tracker="custom_tracker.yaml")[0]  # Perform inference
 
         else: 
-            self.results = self.model_img.track(img, conf=0.01, iou=0.3)[0]  # Perform inference
+            self.results = self.model_img(img, conf=0.025, iou=0.6)[0]  # Perform inference
 
         self.image = img
-        self.detections = self.results
 
     def get_plotted_result(self, line_thickness=1):
         if self.results is not None:
@@ -94,14 +94,18 @@ class Predictor():
         
     def count_class_num(self):
         if self.results is not None: # fix video stop bug
-            if (self.results.boxes.id) is not None:
-                # Process detections
-                track_ids = self.results.boxes.id.int().cpu().tolist()
-                classes = self.results.boxes.cls.numpy()
-                
-                # Store tracking information and count classes
-                result, self.track_history = utils.store_track_info(track_ids, classes, self.track_history)
-                self.total_count = utils.count_from_track_history(self.track_history)
+            if (self.results.boxes) is not None:
+                if self.is_video:
+                    # Process detections
+                    track_ids = self.results.boxes.id.int().cpu().tolist()
+                    classes = self.results.boxes.cls.numpy()
+                    # Store tracking information and count classes
+                    result, self.track_history = utils.store_track_info(track_ids, classes, self.track_history)
+                    self.total_count = utils.count_from_track_history(self.track_history)
+                else:
+                    self.total_count = utils.count_yolo_pred(self.results)
+                    print(self.total_count)
+
                 self.total_count = utils.remap_dictionary(self.total_count)
         return self.total_count
 
@@ -117,7 +121,7 @@ class VideoWorker(QRunnable):
         self.predictor = model
         self.signals = WorkerSignals()
         self.cap =  cv2.VideoCapture(video_path)
-        self.cap.set(cv2.CAP_PROP_FPS, 4)  # Set FPS to 10
+        self.cap.set(cv2.CAP_PROP_FPS, 10)  # Set FPS to 10
         self.is_running = True  # Flag to control the worker
 
     @Slot()  # Marks this method as a slot that can be invoked from Qt code
@@ -135,10 +139,16 @@ class VideoWorker(QRunnable):
                 self.signals.frame_signal.emit(self.predictor.get_plotted_result())
                 # Emit the second signal with the class count
             else:
-                self.stop()
-        self.stop()
+                self.stop_thread()
+        self.stop_thread()
+    
+    def pause_thread(self):
+        return
+    
+    def resume_thread(self):
+        return
 
-    def stop(self):
+    def stop_thread(self):
         """Stop the video capture."""
         self.is_running = False
         self.cap.release()  # Release the webcam
@@ -149,8 +159,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         super(MainWindow, self).__init__(parent)
         self.model = Predictor()
         self.image = None
+        self.image_list_disp = []
         self.setupUi(self)
         self.pushButton_select_file.clicked.connect(self.update_frame)
+        self.pushButton_reformat.clicked.connect(self.reformat_filename)
+
         self.pushButton_Detect.clicked.connect(self.detect_image)
         self.pushButton_stop.clicked.connect(self.stop_video)
         self.threadpool = QThreadPool()
@@ -166,14 +179,78 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setGeometry(0, 0, width, height)
 
     def load_image(self):
-        # Open a file dialog to select an image
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open Image File", "", "Images (*.png *.jpg *.jpeg *.bmp *.gif)")
-        if file_name:
-            pixmap = QtGui.QPixmap(file_name)  # Load the image
-            scaled_pixmap = self.scale_qpix(pixmap)
-            self.image = self.pixmap_to_pil_image(scaled_pixmap)
-            self.display_image(scaled_pixmap)
-    
+        # Open a file dialog to select a folder
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Folder")
+
+        if folder_path:
+            # List images in the folder
+            self.list_images(folder_path)
+            self.set_list_view()
+
+            if self.image_list_disp:  # Check if there are any images
+                pixmap = QtGui.QPixmap(self.image_list_disp[0])  # Load the first image with full path
+                scaled_pixmap = self.scale_qpix(pixmap)
+                self.image = self.pixmap_to_pil_image(scaled_pixmap)
+                self.display_image(scaled_pixmap)
+
+    def set_list_view(self):
+        entries = self.image_list_disp
+        # add item to list view 
+        model = QtGui.QStandardItemModel()
+        self.listView.setModel(model)
+        for file_path in entries:
+            # Extract just the filename from the full path
+            file_name = os.path.basename(file_path)
+            item = QtGui.QStandardItem(file_name)  # Use only the filename for display
+            model.appendRow(item)
+
+    def list_images(self, folder_path):
+        # Supported image file extensions
+        image_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".webp"}
+        
+        # Clear the image list
+        self.image_list_disp = []  # Initialize as an empty list
+
+        # Find and store all image files with their full paths
+        self.image_list_disp = [
+            os.path.join(folder_path, f)  # Get full path for each image
+            for f in os.listdir(folder_path)
+            if os.path.splitext(f)[1].lower() in image_extensions
+        ]
+        
+        self.folder_path = folder_path  # Save the folder path
+
+
+    def reformat_filename(self):
+        model = self.listView.model()
+        model.removeRows(0, model.rowCount())
+        
+        # Loop through each file path in self.image_list_disp
+        for index, file_path in enumerate(self.image_list_disp):
+            # Get the directory and original filename
+            directory, original_filename = os.path.split(file_path)
+            # Construct the new filename with a 'sample_' prefix
+            file_name, file_extension = os.path.splitext(original_filename)  # Split to get the extension
+            new_filename = f"sample_{index}{file_extension}"
+        
+            # Join the directory with the new filename to create a full path
+            new_file_path = os.path.join(directory, new_filename)
+            # Use shutil to rename the file on the filesystem
+            shutil.move(file_path, new_file_path)
+            
+            # Update the list with the new file path (full path)
+            self.image_list_disp[index] = new_file_path  # Update to the new full path
+        
+        # Refresh the QListView with the updated image_list
+        self.set_list_view()
+
+
+
+    def pop_msg_box(self):
+        return
+
+
+
     def show_msg_box(self):
         
         return
@@ -188,15 +265,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def stop_video(self):
         self.worker.is_running = False
-        self.worker.stop()
+        self.worker.stop_thread()
 
     def update_frame(self):
         self.model.reset()
         if self.radioButton_video_mode.isChecked():
-            self.start_video()
+            video_path = self.load_video()
+            self.start_video(video_path)
         elif self.radioButton_image_mode.isChecked():
+            self.model.is_video = False
             self.load_image()
-
+            self.detect_image()
+            
     def scale_qpix(self, pixmap):
         # Set fixed width and height for the image to fit the label
         label_width = self.label_display.width()  # Get the label's width
@@ -212,11 +292,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def detect_image(self):
         if self.image is not None:
             # Run the YOLO detection on the loaded image
-            self.model.is_video = False
             self.model.predict(self.image)
             # Get the plotted result (annotated image)
             plotted_result = self.model.get_plotted_result()
             self.update_display_frame(plotted_result)
+            print(self.model.is_video)
     
     def update_class_count(self):
         # Ensure self.class_count is initialized
@@ -241,11 +321,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.class_count[key] = total_count[key]
         
     
-    def start_video(self):
+    def start_video(self, video_path):
         """
         Start video playback using QRunnable.
         """
-        video_path = self.load_video()  # Path to your MP4 video file
         self.worker = VideoWorker(self.model, video_path)  # Create the video worker
         # Connect signals to the appropriate slots
         self.worker.signals.frame_signal.connect(self.update_display_frame)
@@ -270,11 +349,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def closeEvent(self, event):
         # do stuff
-        if can_exit:
-            event.accept() # let the window close
-        else:
-            event.ignore()
-            
+        event.accept() # let the window close
+        
+
     @staticmethod
     def pixmap_to_pil_image(pixmap):
         return ImageQt.fromqpixmap(pixmap)

@@ -42,7 +42,7 @@ def remap_dictionary(old_dict):
     return remapped_number_dict
 
 def count_yolo_pred(result):
-    cls = result[0].boxes.cls
+    cls = result.boxes.cls
     cls_name = np.unique(cls)
     cls_num = np.unique(cls, return_counts=True)[1]
     count_result = {}
