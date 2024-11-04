@@ -76,7 +76,7 @@ class Predictor():
             self.results = self.model_video.track(img, conf=0.05, iou=0.3, persist=True,tracker="custom_tracker.yaml")[0]  # Perform inference
 
         else: 
-            self.results = self.model_img.track(img, conf=0.1, iou=0.3)[0]  # Perform inference
+            self.results = self.model_img.track(img, conf=0.01, iou=0.3)[0]  # Perform inference
 
         self.image = img
         self.detections = self.results
