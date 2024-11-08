@@ -59,7 +59,7 @@ class Predictor():
 
     def load(self):
         self.model_video = YOLO("weights/best_v11s2.pt")  # Load your model
-        self.model_img = YOLO("weights/best_v11_bad.pt")
+        self.model_img = YOLO("weights/best.pt")
         self.model_img.fuse()
         self.model_video.fuse()
 
@@ -74,10 +74,10 @@ class Predictor():
         """
         # Store the resized image for plotting later
         if self.is_video:
-            self.results = self.model_video.track(img, conf=0.05, iou=0.3, persist=True,tracker="custom_tracker.yaml")[0]  # Perform inference
+            self.results = self.model_video.track(img, conf=0.05, iou=0.3, persist=True, tracker="custom_tracker.yaml")[0]  # Perform inference
 
         else: 
-            self.results = self.model_img(img, conf=0.025, iou=0.6)[0]  # Perform inference
+            self.results = self.model_img(img, conf=0.1, iou=0.4)[0]  # Perform inference
 
         self.image = img
 
@@ -181,7 +181,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def load_image(self):
         # Open a file dialog to select a folder
         folder_path = QFileDialog.getExistingDirectory(self, "Select Folder")
-
         if folder_path:
             # List images in the folder
             self.list_images(folder_path)
@@ -230,19 +229,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Get the directory and original filename
             directory, original_filename = os.path.split(file_path)
             # Construct the new filename with a 'sample_' prefix
-            file_name, file_extension = os.path.splitext(original_filename)  # Split to get the extension
+            file_name, file_extension = os.path.splitext(original_filename)
+            
+            # Create a new filename with the prefix and index
             new_filename = f"sample_{index}{file_extension}"
-        
-            # Join the directory with the new filename to create a full path
             new_file_path = os.path.join(directory, new_filename)
-            # Use shutil to rename the file on the filesystem
+            
+            # Ensure the new filename is unique by appending a counter if necessary
+            counter = 1
+            while os.path.exists(new_file_path):
+                new_filename = f"sample_{index+counter}{file_extension}"
+                counter += 1
+                new_file_path = os.path.join(directory, new_filename)
+            
+            # Rename the file on the filesystem
             shutil.move(file_path, new_file_path)
             
-            # Update the list with the new file path (full path)
+            # Update the list with the new file path
             self.image_list_disp[index] = new_file_path  # Update to the new full path
-        
-        # Refresh the QListView with the updated image_list
-        self.set_list_view()
+            
+            # Refresh the QListView with the updated image_list
+            self.set_list_view()
 
 
 
