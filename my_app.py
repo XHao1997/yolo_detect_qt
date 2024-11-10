@@ -60,13 +60,14 @@ class Predictor():
 
     def load(self):
         self.model_video = YOLO("weights/best3.pt")  # Load your model
-        self.model_img = YOLO("weights/best3.pt")
+        self.model_img = YOLO("weights/bestm.pt")
         self.model_img.fuse()
         self.model_video.fuse()
 
     def reset(self):
         self.track_history= defaultdict(lambda: [])
         self.total_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
+        self.model_video = YOLO("weights/best3.pt")  # Load your model
         self.results = None
 
     def predict(self, img):
