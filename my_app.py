@@ -1,5 +1,6 @@
 import sys, os
 import shutil
+import PIL
 from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox,QWidget, QFileDialog,QMessageBox
 from PySide6.QtCore import QRunnable, Slot, Signal, QObject, QThreadPool, QThread, QTimer
 from PySide6 import QtGui, QtCore
@@ -59,7 +60,7 @@ class Predictor():
 
     def load(self):
         self.model_video = YOLO("weights/best3.pt")  # Load your model
-        self.model_img = YOLO("weights/best_v8m.pt")
+        self.model_img = YOLO("weights/best3.pt")
         self.model_img.fuse()
         self.model_video.fuse()
 
@@ -77,7 +78,7 @@ class Predictor():
             self.results = self.model_video.track(img, conf=0.05, iou=0.3, persist=True, tracker="custom_tracker.yaml")[0]  # Perform inference
 
         else: 
-            self.results = self.model_img(img, conf=0.1, iou=0.4)[0]  # Perform inference
+            self.results = self.model_img(img, conf=0.1, iou=0.2)[0]  # Perform inference
 
         self.image = img
 
@@ -177,8 +178,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         item_text = self.list_model.data(index)
         # Use index.row() to access the correct item in image_list_disp
         pixmap = QtGui.QPixmap(self.image_list_disp[index.row()])  # Load the first image with full path
-        scaled_pixmap = self.scale_qpix(pixmap)
-        self.image = self.pixmap_to_pil_image(scaled_pixmap)
+        self.image = self.pixmap_to_pil_image(pixmap)
         # Call the detection function
         self.detect_image()
 
@@ -307,7 +307,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def detect_image(self):
         if self.image is not None:
             # Run the YOLO detection on the loaded image
-            self.model.predict(self.image)
+            print(self.image)
+            # Resize the image to 640x640
+            img_resized = self.image.resize((640, 640))
+            self.model.predict(img_resized)
             # Get the plotted result (annotated image)
             plotted_result = self.model.get_plotted_result()
             self.update_display_frame(plotted_result)
