@@ -1,6 +1,6 @@
 import sys, os
 import shutil
-from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox,QWidget, QFileDialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox,QWidget, QFileDialog,QMessageBox
 from PySide6.QtCore import QRunnable, Slot, Signal, QObject, QThreadPool, QThread, QTimer
 from PySide6 import QtGui, QtCore
 import numpy as np
@@ -52,14 +52,14 @@ class Predictor():
         self.results = None
         self.plotted_result = None
         self.image = None  # Store the input image
-        self.is_video = True
+        self.is_video = True 
         self.total_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
         self.track_history = defaultdict(lambda: [])
         self.load()
 
     def load(self):
-        self.model_video = YOLO("weights/best_v11s2.pt")  # Load your model
-        self.model_img = YOLO("weights/best.pt")
+        self.model_video = YOLO("weights/best3.pt")  # Load your model
+        self.model_img = YOLO("weights/best_v8m.pt")
         self.model_img.fuse()
         self.model_video.fuse()
 
@@ -163,7 +163,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.pushButton_select_file.clicked.connect(self.update_frame)
         self.pushButton_reformat.clicked.connect(self.reformat_filename)
-
+        self.listView.clicked.connect(self.on_item_clicked)
         self.pushButton_Detect.clicked.connect(self.detect_image)
         self.pushButton_stop.clicked.connect(self.stop_video)
         self.threadpool = QThreadPool()
@@ -171,6 +171,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.worker = None
         self.class_count = {'stone':0, "landslide":0, "fallen tree":0, "road collapse":0 }
         self.resize_to_screen_fraction(fraction=1)
+
+    def on_item_clicked(self, index):
+        # Get the clicked item text
+        item_text = self.list_model.data(index)
+        # Use index.row() to access the correct item in image_list_disp
+        pixmap = QtGui.QPixmap(self.image_list_disp[index.row()])  # Load the first image with full path
+        scaled_pixmap = self.scale_qpix(pixmap)
+        self.image = self.pixmap_to_pil_image(scaled_pixmap)
+        # Call the detection function
+        self.detect_image()
 
     def resize_to_screen_fraction(self, fraction):
         screen_geometry = QApplication.primaryScreen().availableGeometry()
@@ -190,18 +200,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 pixmap = QtGui.QPixmap(self.image_list_disp[0])  # Load the first image with full path
                 scaled_pixmap = self.scale_qpix(pixmap)
                 self.image = self.pixmap_to_pil_image(scaled_pixmap)
-                self.display_image(scaled_pixmap)
+                # self.display_image(scaled_pixmap)
 
     def set_list_view(self):
         entries = self.image_list_disp
         # add item to list view 
-        model = QtGui.QStandardItemModel()
-        self.listView.setModel(model)
+        self.list_model = QtGui.QStandardItemModel()
+        self.listView.setModel(self.list_model)
         for file_path in entries:
             # Extract just the filename from the full path
             file_name = os.path.basename(file_path)
             item = QtGui.QStandardItem(file_name)  # Use only the filename for display
-            model.appendRow(item)
+            self.list_model.appendRow(item)
 
     def list_images(self, folder_path):
         # Supported image file extensions
@@ -210,12 +220,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Clear the image list
         self.image_list_disp = []  # Initialize as an empty list
 
-        # Find and store all image files with their full paths
-        self.image_list_disp = [
-            os.path.join(folder_path, f)  # Get full path for each image
-            for f in os.listdir(folder_path)
-            if os.path.splitext(f)[1].lower() in image_extensions
-        ]
+        # Find, store, and sort all image files with their full paths by index
+        self.image_list_disp = sorted(
+            [
+                os.path.join(folder_path, f)  # Get full path for each image
+                for f in os.listdir(folder_path)
+                if os.path.splitext(f)[1].lower() in image_extensions
+            ],
+            key=lambda x: int(''.join(filter(str.isdigit, os.path.splitext(os.path.basename(x))[0])))
+        )
         
         self.folder_path = folder_path  # Save the folder path
 
@@ -224,29 +237,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         model = self.listView.model()
         model.removeRows(0, model.rowCount())
         
-        # Loop through each file path in self.image_list_disp
         for index, file_path in enumerate(self.image_list_disp):
             # Get the directory and original filename
             directory, original_filename = os.path.split(file_path)
-            # Construct the new filename with a 'sample_' prefix
-            file_name, file_extension = os.path.splitext(original_filename)
+            file_extension = os.path.splitext(original_filename)[1]
+            if "sample" not in original_filename:
+                # Create a unique new filename with a 'sample_' prefix
+                new_file_path = os.path.join(directory, f"sample_{index}{file_extension}")
+                counter = 1
+                while os.path.exists(new_file_path):
+                    new_file_path = os.path.join(directory, f"sample_{index + counter}{file_extension}")
+                    counter += 1
             
-            # Create a new filename with the prefix and index
-            new_filename = f"sample_{index}{file_extension}"
-            new_file_path = os.path.join(directory, new_filename)
+                # Rename the file
+                shutil.move(file_path, new_file_path)
+
             
-            # Ensure the new filename is unique by appending a counter if necessary
-            counter = 1
-            while os.path.exists(new_file_path):
-                new_filename = f"sample_{index+counter}{file_extension}"
-                counter += 1
-                new_file_path = os.path.join(directory, new_filename)
-            
-            # Rename the file on the filesystem
-            shutil.move(file_path, new_file_path)
-            
-            # Update the list with the new file path
-            self.image_list_disp[index] = new_file_path  # Update to the new full path
+                # Update the list with the new file path
+                self.image_list_disp[index] = new_file_path  # Update to the new full path
             
             # Refresh the QListView with the updated image_list
             self.set_list_view()
