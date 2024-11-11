@@ -79,7 +79,7 @@ class Predictor():
             self.results = self.model_video.track(img, conf=0.05, iou=0.3, persist=True, tracker="custom_tracker.yaml")[0]  # Perform inference
 
         else: 
-            self.results = self.model_img(img, conf=0.1, iou=0.2)[0]  # Perform inference
+            self.results = self.model_img(img, conf=0.15, iou=0.15)[0]  # Perform inference
 
         self.image = img
 
@@ -200,7 +200,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             if self.image_list_disp:  # Check if there are any images
                 pixmap = QtGui.QPixmap(self.image_list_disp[0])  # Load the first image with full path
                 scaled_pixmap = self.scale_qpix(pixmap)
-                self.image = self.pixmap_to_pil_image(scaled_pixmap)
+                self.image = self.pixmap_to_pil_image(pixmap)
                 # self.display_image(scaled_pixmap)
 
     def set_list_view(self):
