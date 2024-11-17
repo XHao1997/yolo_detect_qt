@@ -1,6 +1,7 @@
 import sys, os
 import shutil
 import PIL
+import PIL.ImageQt
 from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox,QWidget, QFileDialog,QMessageBox
 from PySide6.QtCore import QRunnable, Slot, Signal, QObject, QThreadPool, QThread, QMutex,Slot, QWaitCondition, QMutexLocker
 from PySide6 import QtGui, QtCore
@@ -229,8 +230,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Use index.row() to access the correct item in image_list_disp
         pixmap = QtGui.QPixmap(self.image_list_disp[index.row()])  # Load the first image with full path
         self.image = self.pixmap_to_pil_image(pixmap)
-        # Call the detection function
-        self.detect_image()
+        if self.radioButton_autodetect.isChecked():
+            # Call the detection function
+            self.detect_image()
+        else:
+            qpix = self.pil_to_pixmap(self.image)
+            # Display the image in your label or widget
+            self.display_image(qpix)
 
     def resize_to_screen_fraction(self, fraction):
         screen_geometry = QApplication.primaryScreen().availableGeometry()
@@ -245,7 +251,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # List images in the folder
             self.list_images(folder_path)
             self.set_list_view()
-
             if self.image_list_disp:  # Check if there are any images
                 pixmap = QtGui.QPixmap(self.image_list_disp[0])  # Load the first image with full path
                 scaled_pixmap = self.scale_qpix(pixmap)
@@ -322,11 +327,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def update_listview(self):
         return 
-    
+        
     def load_video(self):
-        # Open a file dialog to select an image
-        file_name, _ = QFileDialog.getOpenFileName(self, "Open Video File", "", "Videos (*.mp4)")
+        # Open a file dialog to select a video
+        file_name, _ = QFileDialog.getOpenFileName(self, "Open Video File", "", "Videos (*.mp4 *.avi *.mov)")
+        
+        # Check if a file was selected
+        if not file_name:  # file_name is an empty string if no file is selected
+            print("No file selected. Operation canceled.")
+            return None  # Explicitly return None if no file is selected
+        
         return file_name
+
 
     def stop_video(self):
         """
@@ -344,12 +356,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.model.reset()
         if self.radioButton_video_mode.isChecked():
             video_path = self.load_video()
-            self.start_video(video_path)
+            if video_path is not None:
+                self.start_video(video_path)
         elif self.radioButton_image_mode.isChecked():
             self.model.is_video = False
 
             self.load_image()
-            self.detect_image()
+            if self.radioButton_image_mode.isChecked() and self.radioButton_preview.isChecked():
+                qpix = self.pil_to_pixmap(self.image)
+
+                # Display the image in your label or widget
+                self.display_image(qpix)
+                pass
+            else:
+                self.detect_image()
             
     def scale_qpix(self, pixmap):
         # Set fixed width and height for the image to fit the label
@@ -359,8 +379,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         scaled_pixmap = pixmap.scaled(label_width*1, label_height*1, QtCore.Qt.AspectRatioMode.IgnoreAspectRatio)
         return scaled_pixmap
     
-    def display_image(self,pixmap):
-        self.label_display.setPixmap(pixmap)  # Set the scaled image on the label
+    def display_image(self, pixmap):
+        scaled_pixmap = self.scale_qpix(pixmap)
+        self.label_display.setPixmap(scaled_pixmap)  # Set the scaled image on the label
         self.label_display.setScaledContents(False)  # Disable automatic scaling (since we manually scaled it)
 
     def detect_image(self):
@@ -375,7 +396,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             # Get the plotted result (annotated image)
             plotted_result = self.model.get_plotted_result()
             self.update_display_frame(plotted_result)
-            print(self.model.is_video)
     
     def update_class_count(self):
         # Ensure self.class_count is initialized
