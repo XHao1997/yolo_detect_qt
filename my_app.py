@@ -56,11 +56,13 @@ class Predictor():
         self.is_video = True 
         self.total_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
         self.track_history = defaultdict(lambda: [])
+
         self.load()
+
 
     def load(self):
         self.model_video = YOLO("weights/best3.pt")  # Load your model
-        self.model_img = YOLO("weights/bestm.pt")
+        self.model_img = YOLO("weights/best3.pt")
         self.model_img.fuse()
         self.model_video.fuse()
 
@@ -112,20 +114,48 @@ class Predictor():
         return self.total_count
 
 
+class Counter:
+    def __init__(self):
+        self.counting_info = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
+    
+    def update(self, new_result):
+        if isinstance(new_result, dict):
+            for key, value in new_result.items():
+                if key in self.counting_info:
+                    self.counting_info[key] += value
+    
+    def clear(self):
+        self.counting_info = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}  
 
+    def get_result(self):
+        return self.counting_info
 
 class VideoWorker(QRunnable):
     """
     Worker thread that captures video frames in the background.
     """
-    def __init__(self, model:Predictor, video_path):
+    def __init__(self, model: Predictor):
         super().__init__()
         self.predictor = model
         self.signals = WorkerSignals()
-        self.cap =  cv2.VideoCapture(video_path)
-        self.cap.set(cv2.CAP_PROP_FPS, 10)  # Set FPS to 10
+        self.cap = None  # Initialize as None until a video is loaded
         self.is_running = True  # Flag to control the worker
 
+    def load_video(self, video_path):
+        """
+        Loads a video file for processing.
+        """
+        # Release any existing video capture
+        if self.cap:
+            self.cap.release()
+        
+        self.cap = cv2.VideoCapture(video_path)
+        if not self.cap.isOpened():
+            raise ValueError(f"Failed to open video: {video_path}")
+        
+        # Set FPS to 10 if the video supports it
+        self.cap.set(cv2.CAP_PROP_FPS, 10)
+        
     @Slot()  # Marks this method as a slot that can be invoked from Qt code
     def run(self):
         """
@@ -153,7 +183,8 @@ class VideoWorker(QRunnable):
     def stop_thread(self):
         """Stop the video capture."""
         self.is_running = False
-        self.cap.release()  # Release the webcam
+        if self.cap is not None:
+            self.cap.release()  # Release the webcam
         self.predictor.reset()
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -162,7 +193,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.model = Predictor()
         self.image = None
         self.image_list_disp = []
+
         self.setupUi(self)
+        self.list_model = QtGui.QStandardItemModel()
+        self.listView.setModel(self.list_model)
         self.pushButton_select_file.clicked.connect(self.update_frame)
         self.pushButton_reformat.clicked.connect(self.reformat_filename)
         self.listView.clicked.connect(self.on_item_clicked)
@@ -170,7 +204,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.pushButton_stop.clicked.connect(self.stop_video)
         self.threadpool = QThreadPool()
         self.file_path = None
-        self.worker = None
+        self.worker = VideoWorker(self.model)  # Create the video worker
+        self.counter  = Counter()
         self.class_count = {'stone':0, "landslide":0, "fallen tree":0, "road collapse":0 }
         self.resize_to_screen_fraction(fraction=1)
 
@@ -201,7 +236,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 pixmap = QtGui.QPixmap(self.image_list_disp[0])  # Load the first image with full path
                 scaled_pixmap = self.scale_qpix(pixmap)
                 self.image = self.pixmap_to_pil_image(pixmap)
-                # self.display_image(scaled_pixmap)
 
     def set_list_view(self):
         entries = self.image_list_disp
@@ -249,11 +283,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 while os.path.exists(new_file_path):
                     new_file_path = os.path.join(directory, f"sample_{index + counter}{file_extension}")
                     counter += 1
-            
                 # Rename the file
                 shutil.move(file_path, new_file_path)
-
-            
                 # Update the list with the new file path
                 self.image_list_disp[index] = new_file_path  # Update to the new full path
             
@@ -280,8 +311,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         return file_name
 
     def stop_video(self):
-        self.worker.is_running = False
-        self.worker.stop_thread()
+        """
+        Stops the video processing worker gracefully.
+        """
+        if self.worker:
+            self.worker.is_running = False  # Signal the thread to stop
+            if self.worker.cap and self.worker.cap.isOpened():
+                self.worker.cap.release()  # Release video capture resources
+            self.worker.stop_thread()
+            # self.worker = None  # Clear the reference to the worker
 
     def update_frame(self):
         self.model.reset()
@@ -306,6 +344,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.label_display.setScaledContents(False)  # Disable automatic scaling (since we manually scaled it)
 
     def detect_image(self):
+        if self.worker.is_running:
+            self.stop_video()
         if self.image is not None:
             # Run the YOLO detection on the loaded image
             print(self.image)
@@ -323,7 +363,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.class_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
         
         # Get the count from the model
-        total_count = self.model.count_class_num()
+        self.counter.update(self.model.count_class_num())
+        total_count = self.counter.get_result()
         # Update the LCD displays
         if 'stone' in total_count:
             self.lcdNumber_stone.display(total_count['stone'])
@@ -344,9 +385,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Start video playback using QRunnable.
         """
-        self.worker = VideoWorker(self.model, video_path)  # Create the video worker
+        self.listView.model().clear()
         # Connect signals to the appropriate slots
+        self.worker = VideoWorker(self.model)
         self.worker.signals.frame_signal.connect(self.update_display_frame)
+        self.worker.load_video(video_path)
         self.model.is_video = True
         self.threadpool.start(self.worker)  # Start the worker in a separate thread
 
