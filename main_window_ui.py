@@ -369,17 +369,17 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.pushButton_4, 4, 1, 1, 1)
 
-        self.pushButton_Detect = QPushButton(self.formFrame)
-        self.pushButton_Detect.setObjectName(u"pushButton_Detect")
+        self.pushButton_Resume = QPushButton(self.formFrame)
+        self.pushButton_Resume.setObjectName(u"pushButton_Resume")
         sizePolicy11 = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         sizePolicy11.setHorizontalStretch(0)
         sizePolicy11.setVerticalStretch(0)
-        sizePolicy11.setHeightForWidth(self.pushButton_Detect.sizePolicy().hasHeightForWidth())
-        self.pushButton_Detect.setSizePolicy(sizePolicy11)
-        self.pushButton_Detect.setMinimumSize(QSize(180, 0))
-        self.pushButton_Detect.setFont(font8)
+        sizePolicy11.setHeightForWidth(self.pushButton_Resume.sizePolicy().hasHeightForWidth())
+        self.pushButton_Resume.setSizePolicy(sizePolicy11)
+        self.pushButton_Resume.setMinimumSize(QSize(180, 0))
+        self.pushButton_Resume.setFont(font8)
 
-        self.gridLayout_4.addWidget(self.pushButton_Detect, 1, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.pushButton_Resume, 1, 0, 1, 1)
 
         self.pushButton_select_file = QPushButton(self.formFrame)
         self.pushButton_select_file.setObjectName(u"pushButton_select_file")
@@ -396,11 +396,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.pushButton_reformat, 3, 1, 1, 1)
 
-        self.pushButton = QPushButton(self.formFrame)
-        self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setFont(font8)
+        self.pushButton_Detect = QPushButton(self.formFrame)
+        self.pushButton_Detect.setObjectName(u"pushButton_Detect")
+        self.pushButton_Detect.setFont(font8)
 
-        self.gridLayout_4.addWidget(self.pushButton, 4, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.pushButton_Detect, 4, 0, 1, 1)
 
         self.pushButton_stop = QPushButton(self.formFrame)
         self.pushButton_stop.setObjectName(u"pushButton_stop")
@@ -455,10 +455,10 @@ class Ui_MainWindow(object):
         self.radioButton_video_mode.setText(QCoreApplication.translate("MainWindow", u"Video", None))
         self.radioButton_image_mode.setText(QCoreApplication.translate("MainWindow", u"Figure", None))
         self.pushButton_4.setText(QCoreApplication.translate("MainWindow", u"Save Data", None))
-        self.pushButton_Detect.setText(QCoreApplication.translate("MainWindow", u"Resume", None))
+        self.pushButton_Resume.setText(QCoreApplication.translate("MainWindow", u"Resume", None))
         self.pushButton_select_file.setText(QCoreApplication.translate("MainWindow", u"Choose Directory", None))
         self.pushButton_reformat.setText(QCoreApplication.translate("MainWindow", u"Format Filename", None))
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Detect", None))
+        self.pushButton_Detect.setText(QCoreApplication.translate("MainWindow", u"Detect", None))
         self.pushButton_stop.setText(QCoreApplication.translate("MainWindow", u"Pause", None))
     # retranslateUi
 

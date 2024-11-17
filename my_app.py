@@ -2,7 +2,7 @@ import sys, os
 import shutil
 import PIL
 from PySide6.QtWidgets import QApplication, QMainWindow, QCheckBox,QWidget, QFileDialog,QMessageBox
-from PySide6.QtCore import QRunnable, Slot, Signal, QObject, QThreadPool, QThread, QTimer
+from PySide6.QtCore import QRunnable, Slot, Signal, QObject, QThreadPool, QThread, QMutex,Slot, QWaitCondition, QMutexLocker
 from PySide6 import QtGui, QtCore
 import numpy as np
 from PySide6.QtGui import QImage, QPixmap
@@ -129,7 +129,7 @@ class Counter:
 
     def get_result(self):
         return self.counting_info
-
+    
 class VideoWorker(QRunnable):
     """
     Worker thread that captures video frames in the background.
@@ -140,6 +140,9 @@ class VideoWorker(QRunnable):
         self.signals = WorkerSignals()
         self.cap = None  # Initialize as None until a video is loaded
         self.is_running = True  # Flag to control the worker
+        self.paused = False  # Flag to pause the worker
+        self.condition = QWaitCondition()  # Condition variable for pausing/resuming
+        self.mutex = QMutex()  # Mutex for thread-safe operations
 
     def load_video(self, video_path):
         """
@@ -162,30 +165,40 @@ class VideoWorker(QRunnable):
         Capture frames from the video feed in the background thread.
         """
         while self.is_running:
+            with QMutexLocker(self.mutex):
+                if self.paused:
+                    self.condition.wait(self.mutex)  # Wait until resumed
+            
             ret, frame = self.cap.read()  # Capture frame from the webcam
             if ret:
                 frame = cv2.resize(frame, (640, 480))
                 self.predictor.predict(frame)
-                # Emit the first signal with the plotted 
-                print("frame")
+                # Emit the first signal with the plotted result
                 self.signals.frame_signal.emit(self.predictor.get_plotted_result())
-                # Emit the second signal with the class count
+                # Emit the second signal with the class count if needed
             else:
                 self.stop_thread()
-        self.stop_thread()
-    
+        
     def pause_thread(self):
-        return
-    
+        with QMutexLocker(self.mutex):
+            self.paused = True
+
     def resume_thread(self):
-        return
+        with QMutexLocker(self.mutex):
+            self.paused = False
+            self.condition.wakeAll()  # Wake up all waiting threads
 
     def stop_thread(self):
         """Stop the video capture."""
-        self.is_running = False
+        with QMutexLocker(self.mutex):
+            self.is_running = False
+            self.paused = False
+            self.condition.wakeAll()  # Ensure the thread wakes up and exits cleanly
+        
         if self.cap is not None:
             self.cap.release()  # Release the webcam
         self.predictor.reset()
+
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -202,6 +215,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.listView.clicked.connect(self.on_item_clicked)
         self.pushButton_Detect.clicked.connect(self.detect_image)
         self.pushButton_stop.clicked.connect(self.stop_video)
+        self.pushButton_Resume.clicked.connect(self.resume_video)
         self.threadpool = QThreadPool()
         self.file_path = None
         self.worker = VideoWorker(self.model)  # Create the video worker
@@ -236,6 +250,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 pixmap = QtGui.QPixmap(self.image_list_disp[0])  # Load the first image with full path
                 scaled_pixmap = self.scale_qpix(pixmap)
                 self.image = self.pixmap_to_pil_image(pixmap)
+
+    def resume_video(self):
+        if self.worker is not None:
+            self.worker.resume_thread()
 
     def set_list_view(self):
         entries = self.image_list_disp
@@ -314,11 +332,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         Stops the video processing worker gracefully.
         """
-        if self.worker:
-            self.worker.is_running = False  # Signal the thread to stop
-            if self.worker.cap and self.worker.cap.isOpened():
-                self.worker.cap.release()  # Release video capture resources
-            self.worker.stop_thread()
+        # if self.worker:
+        #     self.worker.is_running = False  # Signal the thread to stop
+        #     if self.worker.cap and self.worker.cap.isOpened():
+        #         self.worker.cap.release()  # Release video capture resources
+        #     self.worker.stop_thread()
+        self.worker.pause_thread()
             # self.worker = None  # Clear the reference to the worker
 
     def update_frame(self):
@@ -328,6 +347,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.start_video(video_path)
         elif self.radioButton_image_mode.isChecked():
             self.model.is_video = False
+
             self.load_image()
             self.detect_image()
             
@@ -363,6 +383,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.class_count = {'stone': 0, 'fallen tree': 0, 'road collapse': 0, 'landslide': 0}
         
         # Get the count from the model
+        if self.model.is_video:
+            self.counter.clear()
         self.counter.update(self.model.count_class_num())
         total_count = self.counter.get_result()
         # Update the LCD displays
